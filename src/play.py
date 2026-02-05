@@ -5,6 +5,8 @@ from src.definitions import GameBoard
 from src.chessboard import ChessBoard
 from src.load_engine import load_engine
 
+from copy import deepcopy
+
 
 def outcome_str(board: GameBoard) -> str:
     return {False: "Black won.", True: "White won.", None: "Draw."}[board.winner()]
@@ -20,11 +22,20 @@ def watch_engines(
     engine_two: EngineContainer,
     verbose: bool = True,
 ) -> float:
+    """
+    Play a single game between two engines.
+    Prints to the stdout if verbose is set to True.
+    """
+    if verbose:
+        print(f"Playing game: '{engine_one.name}' vs. '{engine_two.name}'")
+
     while not board.is_game_over():
         if verbose:
             print(board)
             print("-" * 15)
-        move = engine_one(board.copy()) if board.turn else engine_two(board.copy())
+
+        board_copy = board.copy()
+        move = engine_one(board_copy) if board.turn else engine_two(board_copy)
         try:
             board.push(move)
         except AssertionError:
@@ -38,8 +49,9 @@ def watch_engines(
         print(board)
         print("End of game.", outcome_str(board))
 
-    engine_one.reset()
-    engine_two.reset()
+    outcome = board.winner()
+    engine_one.reset(deepcopy(board.move_stack), outcome)
+    engine_two.reset(deepcopy(board.move_stack), outcome)
     return outcome_float(board)
 
 
@@ -48,13 +60,18 @@ def play_engine(
     board: GameBoard,
     human: bool,
 ) -> None:
+    """
+    Play a game between a human and an engine, using stdin and stdout.
+    The `human` argument decides which side the human plays.
+    """
     while not board.is_game_over():
         print(board)
         if board.turn == human:
             print("input move: ", end="")
             san_move = input()
-            move = board.parse_san(san_move)
-            if move not in board.legal_moves:
+            try:
+                move = board.parse_san(san_move)
+            except Exception:
                 print("Illegal move, try again.")
                 continue
         else:
@@ -66,19 +83,32 @@ def play_engine(
 
     print(board)
     print("End of game.", outcome_str(board))
-    engine.reset()
+    engine.reset(deepcopy(board.move_stack), board.winner())
 
 
 def one_vs_one(
-    engine_one: EngineContainer, engine_two: EngineContainer, n_games: int = 100
+    engine_one: EngineContainer,
+    engine_two: EngineContainer,
+    n_games: int = 100,
 ) -> float:
+    """
+    Plays several games between two engines and reports the outcome.
+    """
     performance = 0
 
     for _ in trange(n_games):
-        performance += watch_engines(ChessBoard(), engine_one, engine_two, False)
+        performance += watch_engines(
+            ChessBoard(),
+            engine_one,
+            engine_two,
+            False,
+        )
 
     performance /= n_games
-    print(f"engine_one had a win rate of {performance} with white.")
+    print(
+        f"Engine: '{engine_one.name}' had a point win rate",
+        f"of {performance:.4f} over '{engine_two.name}' with white.",
+    )
     return performance
 
 
@@ -89,7 +119,7 @@ if "__main__" in __name__:
     engine_one = EngineContainer(engine_one, 300)
     engine_two = EngineContainer(engine_two, 300)
 
-    human_play = False
+    human_play = True
     if human_play:
         play_engine(engine_two, board, False)
     else:

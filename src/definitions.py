@@ -13,7 +13,17 @@ class GameBoard(ABC):
     """
 
     legal_moves: Generator
+    move_stack: list[GameMove]
     turn: bool
+
+    def __init__(self) -> None:
+        """
+        Initialisation of a position amounts to randomly selecting an element \
+        from the set of all possible opening positions. For games like \
+        chess, go, and shogi there is only one opening position, and as \
+        such, these games will always initialise to the same positions.
+        """
+        pass
 
     @abstractmethod
     def copy(self) -> GameBoard:
@@ -23,14 +33,14 @@ class GameBoard(ABC):
     @abstractmethod
     def push(self, move) -> None:
         """
-        Makes a move, or more formally, pushes a move on the move stack.
+        Makes a move, or more formally, pushes a move onto the move stack.
         """
         pass
 
     @abstractmethod
     def pop(self) -> GameMove:
         """
-        Reverts the most recent move.
+        Reverts the most recent move by popping a move from the move stack.
         """
         pass
 
@@ -38,15 +48,16 @@ class GameBoard(ABC):
     def san(self, move: GameMove) -> str:
         """
         The name is short for Standard Algebraic Notation.
-        In general, this is a human readable alternative for the notation of a move.
+        In general, this is a human readable version of a move.
         """
         pass
 
     @abstractmethod
     def parse_san(self, move: str) -> GameMove:
         """
-        The inverse of the `san` method. Takes a string in the Standard Algebraic Notation \
-        of the given board, and outputs the `GameMove` that corresponds to it.
+        The inverse of the `san` method. Takes a string in the \
+        Standard Algebraic Notation of the given board, and \
+        outputs the `GameMove` that corresponds to it.
         """
         pass
 
@@ -67,15 +78,18 @@ class GameBoard(ABC):
     @abstractmethod
     def winner(self) -> Optional[bool]:
         """
-        Returns `True` if the first player (the player that starts) has won, and False if they lost.
-        Additionally, it returns a None if there is a tie, or the game has not ended.
+        Returns `True` if the first player (the player that starts) \
+        has won, and False if they lost. Additionally, it returns a \
+        None if there is a tie, or the game has not ended.
         """
         pass
 
     @abstractmethod
     def get_state(self) -> Tensor:
         """
-        Returns some representation of the state of the board as a Tensor.
+        Returns some representation of the state of the board as a \
+        Tensor. The shape of this representation will be consistent \
+        across all elements of the state space.
         """
         pass
 
@@ -83,25 +97,30 @@ class GameBoard(ABC):
 class Engine(ABC):
     """
     An engine is a function which returns a move given a position.
-    Engines, unlike Evaluators give the chosen move for the side at play, and are therefore turn dependent.
-    The assumption may be made that an Engine object will never receive an invalid position, or an impossible
-    position given the rules of the game. It will also never receive a position in which there are no
-    legal moves.
+
+    Engines, unlike evaluation functions, give the chosen move for the \
+    side at play, and are therefore turn dependent. The assumption may \
+    be made that an Engine object will never receive an invalid position, \
+    or an impossible position given the rules of the game. It will also \
+    never receive a position in which there are no legal moves.
     """
 
-    def __init__(self) -> None:
+    name = ""
+
+    def __init__(self, opening_position: GameBoard) -> None:
         """
-        Note that the engine will be initialised with no arguments.
+        Note that the engine will be initialised with an opening \
+        position of the game. This argument can be used to determine \
+        the state space shape, or learn other things about the environment.
         """
         super().__init__()
         # `name` is the only reserved attribute for an Engine
-        self.name = ""
 
     @abstractmethod
     def __call__(self, board: GameBoard) -> GameMove:
         pass
 
-    def unload(self) -> None:
+    def update(self, game: list[GameMove], outcome: bool | None) -> None:
         """
         A method called before the model is removed from working memory.
         Use this method to save anything you need to allow the model to \
