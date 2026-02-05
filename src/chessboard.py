@@ -24,6 +24,9 @@ class ChessBoard(Board, GameBoard):
         return outcome.winner
 
     def get_state(self) -> Tensor:
+        # So this is not implemented right now. It will be when the tournament is run, but
+        # for both the mystery game and chess, you will not be provided the implementation
+        # ahead of time.
         raise BullyCoverMembersException(
             "It is so much more fun if you implement this functionality yourself! :)"
         )
