@@ -5,15 +5,26 @@ We fight for sweet victory, we fight for everlasting glory, but most importantly
 
 This year we will host two different games. One is a fan favourite: chess, the other: a mystery...
 
+## Current Rankings
+
+### chess
+
+| rank | bot name | built with LLMs | single file |
+|------|----------|-----------------|-------------|
+|     1| titan bot|yes|yes|
+|     2| previous champion |no|yes|
+|     3| copilot  |yes|no|
+|     4| random   |no|yes|
+
 ## Submitting a bot
 
 1. Any bot that you submit will have to match the specification of an `Engine`, as implemented in the `src/definitions.py` file.
 2. A bot can be submitted as a single python file or a directory.
     - Single file:
-        - The bot should be implemented as a python class (or function, as long as it still matches the spec) called `ChessBot`.
+        - The bot should be implemented as a python class called `ChessBot` for chess, or `MysteryBot` for the mystery game.
         - You may not load from, or save to the disk.
     - Directory:
-        - The root directory should contain a `main.py` file, which contains the `ChessBot` class (or function).
+        - The root directory should contain a `main.py` file, which contains a `ChessBot` or `MysteryBot` class.
         - You can access any file inside your directory, but use relative paths. These paths should use the global constant `ROOT_DIR`, as shown in the `bots/directory_bot/main.py` example.
 3. You are allowed to use three libraries. `python-chess`, `tqdm`, and `torch`. The python version will be 3.12. The torch CUDA build tag used will be `+cu128`.
 
