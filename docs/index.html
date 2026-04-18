@@ -1,0 +1,372 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Bot Tournament Leaderboard</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+      background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+
+    .container {
+      width: 100%;
+      max-width: 700px;
+    }
+
+    .header {
+      text-align: center;
+      margin-bottom: 30px;
+    }
+
+    .title {
+      color: #e94560;
+      font-size: 2.5rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 4px;
+      margin-bottom: 10px;
+      text-shadow: 0 0 20px rgba(233, 69, 96, 0.5);
+    }
+
+    .tournament-name {
+      color: #fff;
+      font-size: 1.5rem;
+      font-weight: 500;
+      opacity: 0;
+      transition: opacity 0.5s ease;
+    }
+
+    .tournament-name.visible {
+      opacity: 1;
+    }
+
+    .leaderboard {
+      background: rgba(255, 255, 255, 0.05);
+      border-radius: 20px;
+      padding: 20px;
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      box-shadow: 0 25px 50px rgba(0, 0, 0, 0.5);
+    }
+
+    .leaderboard-header {
+      display: grid;
+      grid-template-columns: 60px 1fr 120px 120px;
+      gap: 10px;
+      padding: 15px 20px;
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 12px;
+      margin-bottom: 10px;
+      font-weight: 600;
+      color: rgba(255, 255, 255, 0.7);
+      font-size: 0.85rem;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+
+    .leaderboard-body {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      max-height: 400px;
+      overflow: hidden;
+    }
+
+    .entry {
+      display: grid;
+      grid-template-columns: 60px 1fr 120px 120px;
+      gap: 10px;
+      padding: 18px 20px;
+      background: rgba(255, 255, 255, 0.03);
+      border-radius: 12px;
+      align-items: center;
+      transition: all 0.4s ease;
+      opacity: 0;
+      transform: translateY(20px);
+    }
+
+    .entry.visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    .entry:hover {
+      background: rgba(255, 255, 255, 0.08);
+      transform: scale(1.02);
+    }
+
+    .rank {
+      font-size: 1.4rem;
+      font-weight: 700;
+      color: #e94560;
+    }
+
+    .rank-1 { color: #ffd700; }
+    .rank-2 { color: #c0c0c0; }
+    .rank-3 { color: #cd7f32; }
+
+    .name {
+      color: #fff;
+      font-size: 1.1rem;
+      font-weight: 500;
+    }
+
+    .elo {
+      color: #00d9ff;
+      font-weight: 600;
+      font-size: 1rem;
+    }
+
+    .change {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 5px;
+      font-weight: 600;
+      font-size: 0.95rem;
+    }
+
+    .change-up { color: #4ade80; }
+    .change-down { color: #f87171; }
+    .change-same { color: rgba(255, 255, 255, 0.4); }
+
+    .indicator {
+      font-size: 1.1rem;
+    }
+
+    .dots {
+      display: flex;
+      justify-content: center;
+      gap: 8px;
+      margin-top: 20px;
+    }
+
+    .dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.2);
+      transition: all 0.3s ease;
+    }
+
+    .dot.active {
+      background: #e94560;
+      box-shadow: 0 0 10px rgba(233, 69, 96, 0.5);
+    }
+
+    .empty-state {
+      text-align: center;
+      padding: 40px;
+      color: rgba(255, 255, 255, 0.5);
+      font-size: 1.1rem;
+    }
+
+    @media (max-width: 600px) {
+      .leaderboard-header {
+        grid-template-columns: 50px 1fr 80px;
+        font-size: 0.75rem;
+      }
+      
+      .leaderboard-header > *:last-child {
+        display: none;
+      }
+
+      .entry {
+        grid-template-columns: 50px 1fr 80px;
+      }
+
+      .entry > *:last-child {
+        display: none;
+      }
+
+      .title {
+        font-size: 1.8rem;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1 class="title">Bot Tournament</h1>
+      <div class="tournament-name" id="tournamentName"></div>
+    </div>
+
+    <div class="leaderboard">
+      <div class="leaderboard-header">
+        <div>Rank</div>
+        <div>Bot Name</div>
+        <div>Est. Elo</div>
+        <div>Change</div>
+      </div>
+      <div class="leaderboard-body" id="leaderboardBody"></div>
+    </div>
+
+    <div class="dots" id="dots"></div>
+  </div>
+
+  <script>
+    const TOURNAMENT_SWITCH_INTERVAL = 6000;
+    const BATCH_DISPLAY_TIME = 5000;
+    const BATCH_SIZE = 3;
+
+    let currentTournament = 0;
+    let currentBatch = 0;
+    let tournaments = [];
+
+    async function loadData() {
+      try {
+        const [chessRes, mysteryRes] = await Promise.all([
+          fetch('data/chess-leaderboard.json'),
+          fetch('data/mystery-leaderboard.json')
+        ]);
+        
+        const chessData = await chessRes.json();
+        const mysteryData = await mysteryRes.json();
+        
+        tournaments = [
+          { name: 'Chess Tournament', data: chessData },
+          { name: 'Mystery Tournament', data: mysteryData }
+        ];
+        
+        startCycling();
+      } catch (error) {
+        console.error('Failed to load leaderboard data:', error);
+        document.getElementById('leaderboardBody').innerHTML = 
+          '<div class="empty-state">Failed to load leaderboard data</div>';
+      }
+    }
+
+    function getChangeIndicator(change) {
+      if (change > 0) {
+        return `<span class="indicator">▲</span> +${change}`;
+      } else if (change < 0) {
+        return `<span class="indicator">▼</span> ${change}`;
+      } else {
+        return `<span class="indicator">─</span> 0`;
+      }
+    }
+
+    function getChangeClass(change) {
+      if (change > 0) return 'change change-up';
+      if (change < 0) return 'change change-down';
+      return 'change change-same';
+    }
+
+    function getRankClass(rank) {
+      if (rank === 1) return 'rank rank-1';
+      if (rank === 2) return 'rank rank-2';
+      if (rank === 3) return 'rank rank-3';
+      return 'rank';
+    }
+
+    function renderTournament(index) {
+      const tournament = tournaments[index];
+      const nameEl = document.getElementById('tournamentName');
+      nameEl.textContent = tournament.name;
+      nameEl.classList.add('visible');
+
+      const body = document.getElementById('leaderboardBody');
+      body.innerHTML = '';
+
+      if (tournament.data.entries.length === 0) {
+        body.innerHTML = '<div class="empty-state">No bots registered yet</div>';
+        document.getElementById('dots').innerHTML = '';
+        return;
+      }
+
+      const totalBatches = Math.ceil(tournament.data.entries.length / BATCH_SIZE);
+      const start = currentBatch * BATCH_SIZE;
+      const end = Math.min(start + BATCH_SIZE, tournament.data.entries.length);
+      const batchEntries = tournament.data.entries.slice(start, end);
+
+      batchEntries.forEach((entry, i) => {
+        const div = document.createElement('div');
+        div.className = 'entry';
+        div.innerHTML = `
+          <div class="${getRankClass(entry.rank)}">${entry.rank}</div>
+          <div class="name">${entry.name}</div>
+          <div class="elo">${entry.elo > 0 ? '> ' : ''}${entry.elo}</div>
+          <div class="${getChangeClass(entry.rankChange)}">${getChangeIndicator(entry.rankChange)}</div>
+        `;
+        body.appendChild(div);
+
+        setTimeout(() => {
+          div.classList.add('visible');
+        }, i * 100);
+      });
+
+      renderDots(totalBatches);
+    }
+
+    function renderDots(count) {
+      const dotsContainer = document.getElementById('dots');
+      dotsContainer.innerHTML = '';
+      
+      for (let i = 0; i < count; i++) {
+        const dot = document.createElement('div');
+        dot.className = `dot ${i === currentBatch ? 'active' : ''}`;
+        dotsContainer.appendChild(dot);
+      }
+    }
+
+    function startCycling() {
+      function scheduleNextUpdate(delay) {
+        setTimeout(() => {
+          const entries = tournaments[currentTournament].data.entries.length;
+
+          if (entries === 0) {
+            currentTournament = (currentTournament + 1) % tournaments.length;
+            currentBatch = 0;
+          } else {
+            const totalBatches = Math.ceil(entries / BATCH_SIZE);
+
+            if (currentBatch < totalBatches - 1) {
+              currentBatch++;
+            } else {
+              currentTournament = (currentTournament + 1) % tournaments.length;
+              currentBatch = 0;
+            }
+          }
+
+          renderTournament(currentTournament);
+
+          const nextEntries = tournaments[currentTournament].data.entries.length;
+          const nextDelay = nextEntries === 0
+            ? TOURNAMENT_SWITCH_INTERVAL
+            : currentBatch === Math.ceil(nextEntries / BATCH_SIZE) - 1
+              ? TOURNAMENT_SWITCH_INTERVAL
+              : BATCH_DISPLAY_TIME;
+
+          scheduleNextUpdate(nextDelay);
+        }, delay);
+      }
+
+      renderTournament(currentTournament);
+
+      const initialEntries = tournaments[currentTournament].data.entries.length;
+      const initialDelay = initialEntries === 0 || Math.ceil(initialEntries / BATCH_SIZE) === 1
+        ? TOURNAMENT_SWITCH_INTERVAL
+        : BATCH_DISPLAY_TIME;
+
+      scheduleNextUpdate(initialDelay);
+    }
+
+    loadData();
+  </script>
+</body>
+</html>

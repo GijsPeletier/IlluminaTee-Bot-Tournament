@@ -1,0 +1,38 @@
+{
+  "tournament": "chess",
+  "lastUpdated": "2026-03-14",
+  "entries": [
+    {
+      "rank": 1,
+      "name": "titan bot",
+      "elo": 850,
+      "builtWithLLMs": true,
+      "singleFile": true,
+      "rankChange": 0
+    },
+    {
+      "rank": 2,
+      "name": "previous champion",
+      "elo": 800,
+      "builtWithLLMs": false,
+      "singleFile": true,
+      "rankChange": 0
+    },
+    {
+      "rank": 3,
+      "name": "copilot",
+      "elo": 400,
+      "builtWithLLMs": true,
+      "singleFile": false,
+      "rankChange": 0
+    },
+    {
+      "rank": 4,
+      "name": "random",
+      "elo": 0,
+      "builtWithLLMs": false,
+      "singleFile": true,
+      "rankChange": 0
+    }
+  ]
+}

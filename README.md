@@ -9,12 +9,12 @@ This year we will host two different games. One is a fan favourite: chess, the o
 
 ### chess
 
-| rank | bot name | built with LLMs | single file |
-|------|----------|-----------------|-------------|
-|     1| titan bot|yes|yes|
-|     2| previous champion |no|yes|
-|     3| copilot  |yes|no|
-|     4| random   |no|yes|
+| rank | bot name | built with LLMs | single file | estimated Elo | placed changed |
+|------|----------|-----------------|-------------|---------------|----------------|
+|     1| titan bot|yes|yes| > 850 | 0 |
+|     2| previous champion |no|yes| > 800 | 0 |
+|     3| copilot  |yes|no| > 400 | 0 |
+|     4| random   |no|yes| 0 | 0|
 
 ## Submitting a bot
 
